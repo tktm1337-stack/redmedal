@@ -31,7 +31,7 @@ class Medal(commands.Cog):
         url = "https://developers.medal.tv/v1/latest"
         params = {"userId": user_id, "limit": 1}
         headers = {
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": {api_key},
             "Accept": "application/json"
         }
 
