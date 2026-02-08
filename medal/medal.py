@@ -63,7 +63,7 @@ class Medal(commands.Cog):
             "limit": 1
         }
         headers = {
-            "Authorization": api_key
+            "Authorization": f"Bearer {api_key}"
         }
 
         async with aiohttp.ClientSession() as session:
