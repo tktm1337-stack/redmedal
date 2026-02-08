@@ -92,7 +92,7 @@ class Medal(commands.Cog):
             channel = guild.get_channel(channel_id)
             if channel:
                 clip_url = clip.get("directClipUrl") or clip.get("url")
-                await channel.send(f"🎬 **Nowy klip na Medal!**\n{clip_url}")
+                await channel.send(f"🎬 **mega klip kubskiego!**\n{clip_url}")
                 await self.config.guild(guild).last_content_id.set(content_id)
 
     @check_medal.before_loop
