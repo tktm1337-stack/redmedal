@@ -77,20 +77,20 @@ class Medal(commands.Cog):
             "Accept": "application/json"
         }
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, params=params, headers=headers) as resp:
-            print("=== MEDAL DEBUG ===")
-            print("STATUS:", resp.status)
-            text = await resp.text()
-            print("RAW RESPONSE:", text)
-            print("===================")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params, headers=headers) as resp:
+                print("=== MEDAL DEBUG ===")
+                print("STATUS:", resp.status)
+                text = await resp.text()
+                print("RAW RESPONSE:", text)
+                print("===================")
 
-            if resp.status != 200:
-                return None
+                if resp.status != 200:
+                    return None
 
-            data = await resp.json()
-            clips = data.get("contentObjects", [])
-            return clips[0] if clips else None
+                data = await resp.json()
+                clips = data.get("contentObjects", [])
+                return clips[0] if clips else None
 
     # =========================
     # COMMANDS
