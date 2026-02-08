@@ -107,3 +107,29 @@ class Medal(commands.Cog):
         """Ustaw kanał do wysyłania klipów"""
         await self.config.guild(ctx.guild).channel_id.set(channel.id)
         await ctx.send(f"✅ Klipy będą wysyłane na {channel.mention}")
+
+    @medal.command()
+        async def test(self, ctx):
+            """Sprawdź czy konfiguracja działa i pobierz ostatni klip"""
+            conf = self.config.guild(ctx.guild)
+            user_id = await conf.medal_user_id()
+        
+            # Pobieramy klucz API z systemu Reda
+            api_data = await self.bot.get_shared_api_tokens("medal")
+            api_key = api_data.get("api_key")
+
+            if not api_key:
+                prefix = ctx.clean_prefix
+                return await ctx.send(f"❌ Brak klucza API! Ustaw go wpisując:\n`{prefix}set api medal api_key,TWÓJ_KLUCZ`")
+
+            if not user_id:
+                return await ctx.send("❌ Najpierw ustaw ID użytkownika za pomocą `[p]medal userid`.")
+
+            async with ctx.typing():
+                clip = await self.fetch_latest_clip(api_key, user_id)
+            
+                if not clip:
+                    return await ctx.send("❌ Nie udało się pobrać klipu. Sprawdź czy profil jest publiczny i czy ID jest poprawne.")
+
+                clip_url = clip.get("directClipUrl") or clip.get("url")
+                await ctx.send(f"✅ Test udany! Najnowszy klip:\n{clip_url}")
