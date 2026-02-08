@@ -1,4 +1,5 @@
-from redbot.core import commands, Config, tasks
+from redbot.core import commands, Config
+from discord.ext import tasks
 import aiohttp
 import discord
 
