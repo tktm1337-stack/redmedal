@@ -2,13 +2,14 @@ import discord
 import aiohttp
 import logging
 import asyncio
+import re
 from redbot.core import commands, Config, checks
 from discord.ext import tasks
 
 log = logging.getLogger("red.medal")
 
 class Medal(commands.Cog):
-    """Automatyczne powiadomienia o nowych klipach z Medal.tv z reakcjami"""
+    """Automatyczne powiadomienia o nowych klipach z Medal.tv"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -43,14 +44,23 @@ class Medal(commands.Cog):
             log.error(f"Wyjątek Medal API: {e}")
             return None
 
+    def extract_author(self, clip: dict, user_id: int):
+        """Wyciąga nazwę autora z pola credits lub innych dostępnych pól"""
+        credits = clip.get("credits", "")
+        # Format credits to zazwyczaj: "Credits to NICK (url)"
+        if credits.startswith("Credits to "):
+            # Wyciąga tekst między "Credits to " a pierwszą spacją/nawiasem
+            name = credits.replace("Credits to ", "").split(" (")[0]
+            return name
+        
+        return clip.get("creatorDisplayName") or clip.get("userName") or f"Gracz {user_id}"
+
     async def add_reactions_to_msg(self, message: discord.Message):
-        """Pomocnicza funkcja do dodawania reakcji"""
         reactions = ["❤️", "👍", "👎"]
         for emoji in reactions:
             try:
                 await message.add_reaction(emoji)
             except discord.HTTPException:
-                # Jeśli bot nie ma uprawnień lub kanał jest zablokowany
                 break
 
     @tasks.loop(minutes=5)
@@ -82,12 +92,11 @@ class Medal(commands.Cog):
                 if content_id == last_id:
                     continue
 
-                # Mamy nowy klip!
+                # WYCIĄGANIE NICKU
+                author_name = self.extract_author(clip, user_id)
                 clip_url = clip.get("directClipUrl") or clip.get("url")
-                author = clip.get("creatorDisplayName", f"Użytkownik {user_id}")
                 
-                # Wysyłamy i dodajemy reakcje
-                msg = await channel.send(f"🎬 **{author}** wrzucił nowy klip na Medal!\n{clip_url}")
+                msg = await channel.send(f"🎬 **{author_name}** wrzucił nowy klip na Medal!\n{clip_url}")
                 await self.add_reactions_to_msg(msg)
                 
                 updated_users[str(user_id)] = content_id
@@ -147,7 +156,7 @@ class Medal(commands.Cog):
 
     @medal.command()
     async def test(self, ctx):
-        """Testuje połączenie i pokazuje jak będą wyglądać reakcje"""
+        """Testuje połączenie i wyciąganie nicku"""
         conf = await self.config.guild(ctx.guild).all()
         api_data = await self.bot.get_shared_api_tokens("medal")
         api_key = api_data.get("api_key")
@@ -155,19 +164,19 @@ class Medal(commands.Cog):
         if not api_key or not conf["users"]:
             return await ctx.send("❌ Brakuje klucza API lub lista osób jest pusta.")
 
-        await ctx.send(f"⏳ Testowanie najnowszego użytkownika z listy...")
+        await ctx.send(f"⏳ Testowanie wyciągania nicku...")
         
         async with ctx.typing():
-            # Testujemy tylko pierwszego z brzegu, żeby nie spamować
             first_uid = list(conf["users"].keys())[0]
             clip = await self.fetch_latest_clip(api_key, int(first_uid))
             
             if clip:
+                author = self.extract_author(clip, first_uid)
                 url = clip.get("directClipUrl") or clip.get("url")
-                msg = await ctx.send(f"✅ **Test udany!** Klip od `{first_uid}`:\n{url}")
+                msg = await ctx.send(f"✅ **Test udany!**\nAutor: `{author}`\nKlip: {url}")
                 await self.add_reactions_to_msg(msg)
             else:
-                await ctx.send(f"❌ Nie udało się pobrać klipu dla `{first_uid}`.")
+                await ctx.send(f"❌ Nie udało się pobrać danych dla `{first_uid}`.")
 
 async def setup(bot):
     await bot.add_cog(Medal(bot))
