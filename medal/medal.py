@@ -96,7 +96,7 @@ class Medal(commands.Cog):
                 author_name = self.extract_author(clip, user_id)
                 clip_url = clip.get("directClipUrl") or clip.get("url")
                 
-                msg = await channel.send(f"🎬 **{author_name}** wrzucił nowy klip na Medal!\n{clip_url}")
+                msg = await channel.send(f"🎬 **{author_name}** wrzucił nowego super medala!\n{clip_url}")
                 await self.add_reactions_to_msg(msg)
                 
                 updated_users[str(user_id)] = content_id
