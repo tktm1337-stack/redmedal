@@ -56,23 +56,29 @@ class Medal(commands.Cog):
     async def before_check_medal(self):
         await self.bot.wait_until_ready()
 
-    async def fetch_latest_clip(self, api_key: str, user_id: int):
-        url = "https://developers.medal.tv/v1/latest"
-        params = {
-            "userId": user_id,
-            "limit": 1
-        }
-        headers = {
-            "Authorization": f"Bearer {api_key}"
-        }
+async def fetch_latest_clip(self, api_key: str, user_id: int):
+    url = "https://developers.medal.tv/v1/latest"
+    params = {
+        "userId": user_id,
+        "limit": 1
+    }
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Accept": "application/json"
+    }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params, headers=headers) as resp:
-                if resp.status != 200:
-                    return None
-                data = await resp.json()
-                clips = data.get("contentObjects", [])
-                return clips[0] if clips else None
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params, headers=headers) as resp:
+            print("MEDAL STATUS:", resp.status)
+            text = await resp.text()
+            print("MEDAL RESPONSE:", text)
+
+            if resp.status != 200:
+                return None
+
+            data = await resp.json()
+            clips = data.get("contentObjects", [])
+            return clips[0] if clips else None
 
     @commands.group()
     @commands.admin_or_permissions(manage_guild=True)
