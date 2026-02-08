@@ -1,0 +1,7 @@
+{
+  "name": "Medal",
+  "author": ["kubski"],
+  "short": "Automatyczne klipy Medal.tv",
+  "description": "Wysyła nowe klipy z Medal.tv na Discorda (per-serwer)",
+  "end_user_data_statement": "This cog does not store personal data."
+}
