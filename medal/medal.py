@@ -63,7 +63,7 @@ class Medal(commands.Cog):
             except discord.HTTPException:
                 break
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(seconds=30)
     async def check_medal(self):
         api_data = await self.bot.get_shared_api_tokens("medal")
         api_key = api_data.get("api_key")
@@ -84,6 +84,7 @@ class Medal(commands.Cog):
             should_update = False
 
             for user_id, last_id in settings["users"].items():
+                await asyncio.sleep(1)
                 clip = await self.fetch_latest_clip(api_key, int(user_id))
                 if not clip:
                     continue
